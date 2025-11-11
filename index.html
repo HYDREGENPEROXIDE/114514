@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brick Breaker Ultimate - Complete Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            overflow: hidden;
+            color: white;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 800px;
+            max-width: 95vw;
+            height: 600px;
+            max-height: 95vh;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            background: #0a0a2a;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background: rgba(10, 10, 42, 0.9);
+            z-index: 10;
+            transition: opacity 0.5s;
+        }
+        
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ffcc00;
+        }
+        
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: linear-gradient(to right, #ff8c00, #ffcc00);
+            border: none;
+            border-radius: 50px;
+            color: #1a1a2e;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 0 #cc7a00;
+        }
+        
+        .btn:hover:not(.disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 0 #cc7a00;
+        }
+        
+        .btn:active:not(.disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 2px 0 #cc7a00;
+        }
+        
+        .btn.disabled {
+            background: linear-gradient(to right, #6c757d, #868e96);
+            box-shadow: 0 4px 0 #495057;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(to right, #6c757d, #868e96);
+            box-shadow: 0 4px 0 #495057;
+        }
+        
+        .btn.secondary:hover {
+            box-shadow: 0 6px 0 #495057;
+        }
+        
+        .stats {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            z-index: 5;
+        }
+        
+        .stat {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .combo-display {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .combo-display.active {
+            opacity: 1;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 5;
+        }
+        
+        .control-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-width: 80%;
+            max-height: 50%;
+            overflow-y: auto;
+        }
+        
+        .speed-selector {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .speed-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .speed-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .speed-btn.active {
+            background: rgba(255, 204, 0, 0.3);
+            border-color: #ffcc00;
+        }
+        
+        .mode-selector {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .mode-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .mode-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .mode-btn.active {
+            background: rgba(255, 204, 0, 0.3);
+            border-color: #ffcc00;
+        }
+        
+        .brick-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .brick-example {
+            width: 40px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .brick-1 { background: linear-gradient(to bottom, #ff3366, #cc0044); }
+        .brick-2 { background: linear-gradient(to bottom, #ff9933, #cc6600); }
+        .brick-3 { background: linear-gradient(to bottom, #33cc33, #009900); }
+        .brick-4 { background: linear-gradient(to bottom, #3399ff, #0066cc); }
+        .brick-5 { background: linear-gradient(to bottom, #9966ff, #6600cc); }
+        
+        .special-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .special-effect.active {
+            opacity: 1;
+        }
+        
+        .special-text {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .image-upload-container {
+            margin: 15px 0;
+        }
+        
+        .image-upload-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .image-upload-label:hover {
+            background: rgba(255, 204, 0, 0.3);
+        }
+        
+        #imageUpload {
+            display: none;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            p { font-size: 1rem; }
+            .btn { padding: 10px 25px; font-size: 1rem; }
+            .special-text { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="stats">
+            <div class="stat">Score: <span id="score">0</span></div>
+            <div class="stat">Lives: <span id="lives">1</span></div>
+            <div class="stat">Level: <span id="level">1</span></div>
+        </div>
+        
+        <div class="combo-display" id="comboDisplay">
+            <span>Combo: <span id="comboCount">0</span>x</span>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" id="muteBtn">
+                <span>🔊</span> Sound
+            </button>
+            <button class="control-btn" id="pauseBtn">
+                <span>⏸️</span> Pause
+            </button>
+            <button class="control-btn" id="restartGameBtn">
+                <span>🔄</span> Restart
+            </button>
+            <button class="control-btn" id="addImageEffectBtn">
+                <span>🖼️</span> Add Image
+            </button>
+        </div>
+        
+        <div class="special-effect" id="specialEffect">
+            <div class="special-text">SPECIAL MODE!</div>
+        </div>
+        
+        <input type="file" id="imageUpload" accept="image/*">
+        
+        <div class="screen" id="startScreen">
+            <h1>Brick Breaker Ultimate</h1>
+            <p>Use mouse or left/right arrow keys to move the paddle and bounce the ball to break all bricks!</p>
+            
+            <div class="instructions">
+                <h3>Game Rules</h3>
+                <p>Each brick color has different point value:</p>
+                <div class="brick-row">
+                    <div class="brick-example brick-1"></div>
+                    <div class="brick-example brick-2"></div>
+                    <div class="brick-example brick-3"></div>
+                    <div class="brick-example brick-4"></div>
+                    <div class="brick-example brick-5"></div>
+                </div>
+                <p>Red=10pts, Orange=20pts, Green=30pts, Blue=40pts, Purple=50pts</p>
+                <p>After completing each level, the ball speed will increase and paddle will get smaller!</p>
+                <p><strong>NEW:</strong> Combo system! Break bricks quickly to earn bonus points!</p>
+                <p><strong>NEW:</strong> Every 5 bricks broken, a special "67" effect appears!</p>
+                <p><strong>NEW:</strong> Upload your own images to create custom effects!</p>
+                
+                <div class="image-upload-container">
+                    <label for="imageUpload" class="image-upload-label">
+                        📁 Upload Custom Image
+                    </label>
+                    <p style="font-size: 0.9rem; margin-top: 5px;">Uploaded images will appear as effects when you break bricks</p>
+                </div>
+                
+                <div class="speed-selector">
+                    <h4>Select Ball Speed:</h4>
+                    <div class="speed-options">
+                        <button class="speed-btn" data-speed="4">Slow</button>
+                        <button class="speed-btn" data-speed="5">Medium</button>
+                        <button class="speed-btn" data-speed="6">Fast</button>
+                    </div>
+                    <p id="speedWarning" style="color: #ffcc00; margin-top: 10px; display: none;">Please select a speed to start the game</p>
+                </div>
+                
+                <div class="mode-selector">
+                    <h4>Select Game Mode:</h4>
+                    <div class="mode-options">
+                        <button class="mode-btn" data-mode="normal">Normal</button>
+                        <button class="mode-btn" data-mode="special">Special (Moving Bricks)</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn disabled" id="startBtn" disabled>Start Game</button>
+            </div>
+        </div>
+        
+        <div class="screen hidden" id="gameOverScreen">
+            <h2>Game Over</h2>
+            <p>Your final score: <span id="finalScore">0</span></p>
+            <p>High score: <span id="highScore">0</span></p>
+            <button class="btn" id="returnToMenuBtn">Return to Menu</button>
+        </div>
+        
+        <div class="screen hidden" id="levelCompleteScreen">
+            <h2>Level Complete!</h2>
+            <p>Congratulations! You completed level <span id="completedLevel">1</span></p>
+            <p>Your current score: <span id="levelScore">0</span></p>
+            <button class="btn" id="nextLevelBtn">Next Level</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Game state - SINGLE LIFE
+        let gameState = {
+            score: 0,
+            lives: 1, // Only one life
+            level: 1,
+            isPaused: false,
+            isMuted: false,
+            highScore: localStorage.getItem('brickBreakerHighScore') || 0,
+            combo: 0, // Combo counter
+            lastBrickTime: 0, // Time of last brick hit for combo
+            comboTimeout: null, // Combo timeout reference
+            selectedSpeed: null, // No speed selected initially
+            gameMode: 'normal', // normal or special
+            brickOffsetX: 0, // For moving bricks in special mode
+            brickDirection: 1, // 1 for right, -1 for left
+            brickMoveSpeed: 0.1, // Reduced speed of brick movement
+            originalOffsetTop: 80, // Store original brick offset for reset
+            bricksBroken: 0, // Counter for broken bricks
+            customImages: [] // Store uploaded custom images
+        };
+        
+        // Game elements - CLASSIC LAYOUT
+        let paddle = {
+            width: 80, // Smaller paddle
+            height: 15,
+            x: canvas.width / 2 - 40,
+            y: canvas.height - 30,
+            speed: 8,
+            baseWidth: 80 // Store base width for reset
+        };
+        
+        let ball = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            radius: 10,
+            speedX: 0,
+            speedY: 0,
+            baseSpeed: 5 // Store base speed for reset
+        };
+        
+        // Brick settings - HORIZONTAL BRICKS (wide, short)
+        const brickConfig = {
+            rowCount: 4, // Fewer rows
+            columnCount: 12, // More columns
+            width: 60, // Wider bricks
+            height: 20, // Shorter bricks
+            padding: 5,
+            offsetTop: gameState.originalOffsetTop,
+            offsetLeft: 0
+        };
+        
+        let bricks = [];
+        
+        // 67 Effects
+        let sixtySevenEffects = [];
+        
+        // Image Effects
+        let imageEffects = [];
+        
+        // Sound effects
+        const sounds = {
+            hit: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            brick: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            life: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            level: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            combo: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            special: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==")
+        };
+        
+        // Initialize game
+        function initGame() {
+            gameState.score = 0;
+            gameState.lives = 1; // Only one life
+            gameState.level = 1;
+            gameState.isPaused = false;
+            gameState.combo = 0;
+            gameState.lastBrickTime = 0;
+            gameState.brickOffsetX = 0;
+            gameState.brickDirection = 1;
+            gameState.bricksBroken = 0;
+            
+            // Reset brick position for special mode
+            brickConfig.offsetTop = gameState.originalOffsetTop;
+            
+            // Clear combo timeout if exists
+            if (gameState.comboTimeout) {
+                clearTimeout(gameState.comboTimeout);
+                gameState.comboTimeout = null;
+            }
+            
+            // Reset ball base speed to selected value
+            ball.baseSpeed = gameState.selectedSpeed;
+            
+            // Reset paddle width to initial value
+            paddle.baseWidth = 80;
+            
+            // Clear effects
+            sixtySevenEffects = [];
+            imageEffects = [];
+            
+            updateStats();
+            updateComboDisplay();
+            
+            // Initialize paddle
+            paddle.width = Math.min(paddle.baseWidth, canvas.width / 8);
+            paddle.x = canvas.width / 2 - paddle.width / 2;
+            paddle.y = canvas.height - 30;
+            
+            // Initialize ball
+            resetBall();
+            
+            // Initialize bricks
+            initBricks();
+            
+            // Show special effect if special mode
+            if (gameState.gameMode === 'special') {
+                showSpecialEffect();
+            }
+            
+            // Hide all screens, show only game
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('levelCompleteScreen').classList.add('hidden');
+        }
+        
+        // Initialize bricks - HORIZONTAL BRICKS (wide, short)
+        function initBricks() {
+            bricks = [];
+            // Calculate offset to center bricks horizontally
+            const totalWidth = brickConfig.columnCount * (brickConfig.width + brickConfig.padding) - brickConfig.padding;
+            brickConfig.offsetLeft = (canvas.width - totalWidth) / 2;
+            
+            for (let c = 0; c < brickConfig.columnCount; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < brickConfig.rowCount; r++) {
+                    // Set brick color and points based on row
+                    let color, points;
+                    switch(r) {
+                        case 0: color = '#ff3366'; points = 10; break;
+                        case 1: color = '#ff9933'; points = 20; break;
+                        case 2: color = '#33cc33'; points = 30; break;
+                        case 3: color = '#3399ff'; points = 40; break;
+                    }
+                    
+                    bricks[c][r] = { 
+                        x: 0, 
+                        y: 0, 
+                        status: 1,
+                        color: color,
+                        points: points
+                    };
+                }
+            }
+        }
+        
+        // Show special effect for special mode
+        function showSpecialEffect() {
+            const specialEffect = document.getElementById('specialEffect');
+            specialEffect.classList.add('active');
+            
+            // Play special sound
+            if (!gameState.isMuted) {
+                sounds.special.play();
+            }
+            
+            // Hide effect after 3 seconds
+            setTimeout(() => {
+                specialEffect.classList.remove('active');
+            }, 3000);
+        }
+        
+        // Create 67 effect
+        function createSixtySevenEffect(x, y) {
+            sixtySevenEffects.push({
+                x: x,
+                y: y,
+                text: '67',
+                alpha: 1.0,
+                rotation: 0,
+                scale: 1.0,
+                speedX: (Math.random() - 0.5) * 1.5, // Random horizontal movement
+                speedY: -0.5, // Move upward
+                rotationSpeed: 1, // Rotation speed in degrees per frame
+                life: 120 // Effect duration in frames
+            });
+        }
+        
+        // Draw 67 effects
+        function drawSixtySevenEffects() {
+            for (let i = 0; i < sixtySevenEffects.length; i++) {
+                const effect = sixtySevenEffects[i];
+                
+                ctx.save();
+                ctx.globalAlpha = effect.alpha;
+                ctx.translate(effect.x, effect.y);
+                ctx.rotate(effect.rotation * Math.PI / 180);
+                ctx.scale(effect.scale, effect.scale);
+                
+                // Draw "67" with white color and glow effect
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(effect.text, 0, 0);
+                
+                // Add glow effect
+                ctx.shadowColor = 'white';
+                ctx.shadowBlur = 10;
+                ctx.fillText(effect.text, 0, 0);
+                ctx.shadowBlur = 0;
+                
+                ctx.restore();
+                
+                // Update effect properties
+                effect.x += effect.speedX;
+                effect.y += effect.speedY;
+                effect.rotation += effect.rotationSpeed;
+                effect.scale += 0.005; // Slightly grow over time
+                effect.alpha -= 1 / effect.life;
+                effect.life--;
+                
+                // Remove effect if it's no longer visible or life is over
+                if (effect.alpha <= 0 || effect.life <= 0) {
+                    sixtySevenEffects.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+        
+        // Create image effect
+        function createImageEffect(image, x, y) {
+            // Scale down large images for better performance
+            const maxWidth = 100;
+            const maxHeight = 100;
+            
+            let width = image.width;
+            let height = image.height;
+            
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width *= ratio;
+                height *= ratio;
+            }
+            
+            imageEffects.push({
+                image: image,
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                alpha: 1.0,
+                rotation: 0,
+                scale: 1.0,
+                speedX: (Math.random() - 0.5) * 1.5,
+                speedY: -0.5,
+                rotationSpeed: 1,
+                life: 120
+            });
+        }
+        
+        // Draw image effects
+        function drawImageEffects() {
+            for (let i = 0; i < imageEffects.length; i++) {
+                const effect = imageEffects[i];
+                
+                ctx.save();
+                ctx.globalAlpha = effect.alpha;
+                ctx.translate(effect.x, effect.y);
+                ctx.rotate(effect.rotation * Math.PI / 180);
+                ctx.scale(effect.scale, effect.scale);
+                
+                // Draw image (centered)
+                ctx.drawImage(
+                    effect.image, 
+                    -effect.width/2, 
+                    -effect.height/2,
+                    effect.width,
+                    effect.height
+                );
+                
+                ctx.restore();
+                
+                // Update effect properties
+                effect.x += effect.speedX;
+                effect.y += effect.speedY;
+                effect.rotation += effect.rotationSpeed;
+                effect.scale += 0.005;
+                effect.alpha -= 1 / effect.life;
+                effect.life--;
+                
+                // Remove effect if it's no longer visible or life is over
+                if (effect.alpha <= 0 || effect.life <= 0) {
+                    imageEffects.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+        
+        // Handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check if file is an image
+            if (!file.type.match('image.*')) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    gameState.customImages.push(img);
+                    alert('Image uploaded successfully! It will appear as an effect when you break bricks.');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            // Reset the file input
+            event.target.value = '';
+        }
+        
+        // Add random image effect
+        function addRandomImageEffect() {
+            if (gameState.customImages.length === 0) {
+                alert('Please upload an image first using the "Upload Custom Image" button on the main menu');
+                return;
+            }
+            
+            // Select a random uploaded image
+            const randomImage = gameState.customImages[Math.floor(Math.random() * gameState.customImages.length)];
+            
+            // Create effect at a random position
+            const x = Math.random() * (canvas.width - 100) + 50;
+            const y = Math.random() * (canvas.height - 100) + 50;
+            
+            createImageEffect(randomImage, x, y);
+        }
+        
+        // Reset ball position
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 50;
+            ball.speedX = (Math.random() > 0.5 ? 1 : -1) * ball.baseSpeed;
+            ball.speedY = -ball.baseSpeed;
+        }
+        
+        // Draw game elements
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            drawBackground();
+            
+            // Draw 67 effects
+            drawSixtySevenEffects();
+            
+            // Draw image effects
+            drawImageEffects();
+            
+            // Draw bricks
+            drawBricks();
+            
+            // Draw paddle
+            drawPaddle();
+            
+            // Draw ball
+            drawBall();
+            
+            // Draw particle effects
+            drawParticles();
+            
+            // Draw combo effects
+            drawComboEffects();
+        }
+        
+        // Draw background
+        function drawBackground() {
+            // Draw starry background
+            ctx.fillStyle = '#0a0a2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            ctx.fillStyle = 'white';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height * 0.7;
+                const size = Math.random() * 2;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Draw bricks - HORIZONTAL BRICKS (wide, short)
+        function drawBricks() {
+            for (let c = 0; c < brickConfig.columnCount; c++) {
+                for (let r = 0; r < brickConfig.rowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        let brickX = c * (brickConfig.width + brickConfig.padding) + brickConfig.offsetLeft;
+                        
+                        // Add horizontal offset for special mode
+                        if (gameState.gameMode === 'special') {
+                            brickX += gameState.brickOffsetX;
+                        }
+                        
+                        const brickY = r * (brickConfig.height + brickConfig.padding) + brickConfig.offsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        
+                        // Draw brick (wide and short)
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, brickConfig.width, brickConfig.height);
+                        ctx.fillStyle = bricks[c][r].color;
+                        ctx.fill();
+                        ctx.closePath();
+                        
+                        // Brick border
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        // Draw paddle - CLASSIC LAYOUT
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
+            ctx.fillStyle = '#ffcc00';
+            ctx.fill();
+            ctx.closePath();
+            
+            // Add shine effect
+            ctx.beginPath();
+            ctx.rect(paddle.x + 5, paddle.y, paddle.width - 10, 5);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fill();
+            ctx.closePath();
+        }
+        
+        // Draw ball
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.closePath();
+            
+            // Add highlight effect
+            ctx.beginPath();
+            ctx.arc(ball.x - ball.radius/3, ball.y - ball.radius/3, ball.radius/3, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fill();
+            ctx.closePath();
+        }
+        
+        // Particle effects
+        let particles = [];
+        
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    size: Math.random() * 3 + 1,
+                    speedX: Math.random() * 4 - 2,
+                    speedY: Math.random() * 4 - 2,
+                    color: color,
+                    life: 30
+                });
+            }
+        }
+        
+        function drawParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                ctx.closePath();
+                
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.life--;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+        
+        // Combo effects
+        let comboEffects = [];
+        
+        function createComboEffect(x, y, combo) {
+            comboEffects.push({
+                x: x,
+                y: y,
+                text: `COMBO ${combo}x!`,
+                size: 20 + combo * 2,
+                life: 60,
+                alpha: 1
+            });
+        }
+        
+        function drawComboEffects() {
+            for (let i = 0; i < comboEffects.length; i++) {
+                const effect = comboEffects[i];
+                ctx.save();
+                ctx.globalAlpha = effect.alpha;
+                ctx.font = `bold ${effect.size}px Arial`;
+                ctx.fillStyle = getComboColor(effect.life);
+                ctx.textAlign = 'center';
+                ctx.fillText(effect.text, effect.x, effect.y);
+                ctx.restore();
+                
+                effect.y -= 1;
+                effect.life--;
+                effect.alpha = effect.life / 60;
+                
+                if (effect.life <= 0) {
+                    comboEffects.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+        
+        function getComboColor(life) {
+            const ratio = life / 60;
+            if (ratio > 0.7) return '#ffcc00';
+            if (ratio > 0.4) return '#ff9933';
+            return '#ff3366';
+        }
+        
+        // Update combo display
+        function updateComboDisplay() {
+            const comboDisplay = document.getElementById('comboDisplay');
+            const comboCount = document.getElementById('comboCount');
+            
+            comboCount.textContent = gameState.combo;
+            
+            if (gameState.combo > 1) {
+                comboDisplay.classList.add('active');
+            } else {
+                comboDisplay.classList.remove('active');
+            }
+        }
+        
+        // Handle combo system - REDUCED COMBO TIME
+        function handleCombo(brickX, brickY) {
+            const now = Date.now();
+            
+            // If last brick was hit within 0.8 seconds (reduced from 1.5), increase combo
+            if (now - gameState.lastBrickTime < 800) {
+                gameState.combo++;
+                
+                // Play combo sound for high combos
+                if (gameState.combo >= 3 && !gameState.isMuted) {
+                    sounds.combo.play();
+                }
+            } else {
+                gameState.combo = 1;
+            }
+            
+            gameState.lastBrickTime = now;
+            
+            // Reset combo after 0.8 seconds of inactivity (reduced from 1.5)
+            if (gameState.comboTimeout) {
+                clearTimeout(gameState.comboTimeout);
+            }
+            
+            gameState.comboTimeout = setTimeout(() => {
+                gameState.combo = 0;
+                updateComboDisplay();
+            }, 800);
+            
+            // Create combo effect for combos of 3 or more
+            if (gameState.combo >= 3) {
+                createComboEffect(brickX + brickConfig.width/2, brickY, gameState.combo);
+            }
+            
+            updateComboDisplay();
+        }
+        
+        // Move bricks in special mode
+        function moveBricks() {
+            if (gameState.gameMode !== 'special') return;
+            
+            // Calculate the total width of all bricks
+            const totalBrickWidth = brickConfig.columnCount * (brickConfig.width + brickConfig.padding) - brickConfig.padding;
+            
+            // Move bricks horizontally
+            gameState.brickOffsetX += gameState.brickDirection * gameState.brickMoveSpeed;
+            
+            // Check if bricks hit the right edge
+            if (gameState.brickOffsetX + totalBrickWidth > canvas.width - brickConfig.offsetLeft) {
+                gameState.brickDirection = -1; // Change direction to left
+                gameState.brickOffsetX = canvas.width - brickConfig.offsetLeft - totalBrickWidth;
+                
+                // Move bricks down one row
+                brickConfig.offsetTop += brickConfig.height + brickConfig.padding;
+            }
+            
+            // Check if bricks hit the left edge
+            if (gameState.brickOffsetX < -brickConfig.offsetLeft) {
+                gameState.brickDirection = 1; // Change direction to right
+                gameState.brickOffsetX = -brickConfig.offsetLeft;
+                
+                // Move bricks down one row
+                brickConfig.offsetTop += brickConfig.height + brickConfig.padding;
+            }
+            
+            // Check if bricks are too low (game over condition)
+            if (brickConfig.offsetTop + brickConfig.rowCount * (brickConfig.height + brickConfig.padding) > canvas.height - 100) {
+                gameOver();
+            }
+        }
+        
+        // Collision detection - CLASSIC LAYOUT
+        function collisionDetection() {
+            // Ball collision with bricks
+            for (let c = 0; c < brickConfig.columnCount; c++) {
+                for (let r = 0; r < brickConfig.rowCount; r++) {
+                    const brick = bricks[c][r];
+                    if (brick.status === 1) {
+                        // Improved collision detection
+                        if (ball.x + ball.radius > brick.x && 
+                            ball.x - ball.radius < brick.x + brickConfig.width &&
+                            ball.y + ball.radius > brick.y && 
+                            ball.y - ball.radius < brick.y + brickConfig.height) {
+                            
+                            // Determine which side of the brick was hit
+                            const ballCenterX = ball.x;
+                            const ballCenterY = ball.y;
+                            const brickCenterX = brick.x + brickConfig.width / 2;
+                            const brickCenterY = brick.y + brickConfig.height / 2;
+                            
+                            // Calculate differences
+                            const dx = ballCenterX - brickCenterX;
+                            const dy = ballCenterY - brickCenterY;
+                            
+                            // Determine which axis to bounce on
+                            if (Math.abs(dx) > Math.abs(dy)) {
+                                // Horizontal collision
+                                ball.speedX = -ball.speedX;
+                            } else {
+                                // Vertical collision
+                                ball.speedY = -ball.speedY;
+                            }
+                            
+                            brick.status = 0;
+                            
+                            // Handle combo system
+                            handleCombo(brick.x, brick.y);
+                            
+                            // Calculate score with combo multiplier
+                            const comboMultiplier = Math.min(gameState.combo, 5);
+                            const pointsEarned = brick.points * comboMultiplier;
+                            gameState.score += pointsEarned;
+                            
+                            // Count broken bricks and create 67 effect every 5 bricks
+                            gameState.bricksBroken++;
+                            if (gameState.bricksBroken % 5 === 0) {
+                                createSixtySevenEffect(brick.x + brickConfig.width/2, brick.y + brickConfig.height/2);
+                            }
+                            
+                            // Create image effect every 3 bricks (if images are uploaded)
+                            if (gameState.bricksBroken % 3 === 0 && gameState.customImages.length > 0) {
+                                const randomImage = gameState.customImages[Math.floor(Math.random() * gameState.customImages.length)];
+                                createImageEffect(
+                                    randomImage, 
+                                    brick.x + brickConfig.width/2, 
+                                    brick.y + brickConfig.height/2
+                                );
+                            }
+                            
+                            createParticles(ball.x, ball.y, brick.color);
+                            
+                            if (!gameState.isMuted) {
+                                sounds.brick.play();
+                            }
+                            
+                            // Check if all bricks are broken
+                            if (checkLevelComplete()) {
+                                if (!gameState.isMuted) {
+                                    sounds.level.play();
+                                }
+                                showLevelComplete();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Ball collision with walls
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.speedX = -ball.speedX;
+                if (!gameState.isMuted) {
+                    sounds.hit.play();
+                }
+            }
+            
+            if (ball.y - ball.radius < 0) {
+                ball.speedY = -ball.speedY;
+                if (!gameState.isMuted) {
+                    sounds.hit.play();
+                }
+            }
+            
+            // Ball collision with paddle - CLASSIC LAYOUT
+            if (ball.y + ball.radius > paddle.y && ball.y - ball.radius < paddle.y + paddle.height &&
+                ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                ball.speedY = -ball.speedY;
+                
+                // Adjust bounce angle based on where the ball hits the paddle
+                const hitPos = (ball.x - paddle.x) / paddle.width;
+                ball.speedX = 6 * (hitPos - 0.5);
+                
+                if (!gameState.isMuted) {
+                    sounds.hit.play();
+                }
+                
+                createParticles(ball.x, ball.y, '#ffcc00');
+            }
+            
+            // Ball falls below paddle - game over (SINGLE LIFE)
+            if (ball.y - ball.radius > canvas.height) {
+                gameOver();
+            }
+        }
+        
+        // Check if level is complete
+        function checkLevelComplete() {
+            for (let c = 0; c < brickConfig.columnCount; c++) {
+                for (let r = 0; r < brickConfig.rowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        // Show level complete screen
+        function showLevelComplete() {
+            document.getElementById('completedLevel').textContent = gameState.level;
+            document.getElementById('levelScore').textContent = gameState.score;
+            document.getElementById('levelCompleteScreen').classList.remove('hidden');
+            gameState.isPaused = true;
+        }
+        
+        // Go to next level
+        function nextLevel() {
+            gameState.level++;
+            
+            // Increase ball speed for next level - ONLY HERE
+            ball.baseSpeed += 0.5;
+            
+            // Decrease paddle width for next level (make it smaller)
+            paddle.baseWidth = Math.max(40, paddle.baseWidth - 10);
+            
+            // Reset brick position for special mode
+            brickConfig.offsetTop = gameState.originalOffsetTop;
+            
+            resetBall();
+            initBricks();
+            
+            // Update paddle width
+            paddle.width = Math.min(paddle.baseWidth, canvas.width / 8);
+            paddle.x = canvas.width / 2 - paddle.width / 2;
+            
+            document.getElementById('levelCompleteScreen').classList.add('hidden');
+            gameState.isPaused = false;
+            updateStats();
+        }
+        
+        // Game over - RETURN TO MAIN MENU
+        function gameOver() {
+            // Update high score
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                localStorage.setItem('brickBreakerHighScore', gameState.highScore);
+            }
+            
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('highScore').textContent = gameState.highScore;
+            
+            // Show game over screen briefly, then return to menu
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            gameState.isPaused = true;
+            
+            // After 2 seconds, return to main menu
+            setTimeout(() => {
+                document.getElementById('gameOverScreen').classList.add('hidden');
+                document.getElementById('startScreen').classList.remove('hidden');
+                resetStartScreen();
+            }, 2000);
+        }
+        
+        // Reset start screen
+        function resetStartScreen() {
+            // Reset speed selection
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            gameState.selectedSpeed = null;
+            
+            // Reset mode selection
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            gameState.gameMode = 'normal';
+            
+            // Disable start button
+            const startBtn = document.getElementById('startBtn');
+            startBtn.classList.add('disabled');
+            startBtn.disabled = true;
+            
+            // Hide speed warning
+            document.getElementById('speedWarning').style.display = 'none';
+        }
+        
+        // Update game stats
+        function updateStats() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('lives').textContent = gameState.lives;
+            document.getElementById('level').textContent = gameState.level;
+        }
+        
+        // Game main loop
+        function gameLoop() {
+            if (!gameState.isPaused) {
+                draw();
+                collisionDetection();
+                
+                // Move ball
+                ball.x += ball.speedX;
+                ball.y += ball.speedY;
+                
+                // Move bricks in special mode
+                moveBricks();
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Event listeners - CLASSIC LAYOUT
+        document.addEventListener('mousemove', (e) => {
+            if (!gameState.isPaused) {
+                const rect = canvas.getBoundingClientRect();
+                const relativeX = e.clientX - rect.left;
+                
+                if (relativeX > paddle.width / 2 && relativeX < canvas.width - paddle.width / 2) {
+                    paddle.x = relativeX - paddle.width / 2;
+                }
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'Left') {
+                if (paddle.x > 0) {
+                    paddle.x -= paddle.speed;
+                }
+            } else if (e.key === 'ArrowRight' || e.key === 'Right') {
+                if (paddle.x < canvas.width - paddle.width) {
+                    paddle.x += paddle.speed;
+                }
+            } else if (e.key === ' ') {
+                gameState.isPaused = !gameState.isPaused;
+                document.getElementById('pauseBtn').innerHTML = gameState.isPaused ? 
+                    '<span>▶️</span> Resume' : '<span>⏸️</span> Pause';
+            }
+        });
+        
+        // Speed selection buttons
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.speed-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Update selected speed
+                gameState.selectedSpeed = parseInt(btn.dataset.speed);
+                
+                // Enable start button if mode is also selected
+                const startBtn = document.getElementById('startBtn');
+                if (gameState.gameMode) {
+                    startBtn.classList.remove('disabled');
+                    startBtn.disabled = false;
+                }
+                
+                // Hide speed warning
+                document.getElementById('speedWarning').style.display = 'none';
+            });
+        });
+        
+        // Mode selection buttons
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.mode-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Update selected mode
+                gameState.gameMode = btn.dataset.mode;
+                
+                // Enable start button if speed is also selected
+                const startBtn = document.getElementById('startBtn');
+                if (gameState.selectedSpeed) {
+                    startBtn.classList.remove('disabled');
+                    startBtn.disabled = false;
+                }
+            });
+        });
+        
+        // Image upload handler
+        document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+        
+        // Button events
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (gameState.selectedSpeed && gameState.gameMode) {
+                initGame();
+                gameLoop();
+            } else {
+                // Show warning if no speed selected
+                document.getElementById('speedWarning').style.display = 'block';
+            }
+        });
+        
+        document.getElementById('returnToMenuBtn').addEventListener('click', () => {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            resetStartScreen();
+        });
+        
+        document.getElementById('restartGameBtn').addEventListener('click', () => {
+            if (gameState.selectedSpeed && gameState.gameMode) {
+                initGame(); // This will reset everything including ball speed
+                if (gameState.isPaused) {
+                    gameState.isPaused = false;
+                    document.getElementById('pauseBtn').innerHTML = '<span>⏸️</span> Pause';
+                }
+            } else {
+                // Show warning if no speed selected
+                document.getElementById('speedWarning').style.display = 'block';
+            }
+        });
+        
+        document.getElementById('nextLevelBtn').addEventListener('click', nextLevel);
+        
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            gameState.isPaused = !gameState.isPaused;
+            document.getElementById('pauseBtn').innerHTML = gameState.isPaused ? 
+                '<span>▶️</span> Resume' : '<span>⏸️</span> Pause';
+        });
+        
+        document.getElementById('muteBtn').addEventListener('click', () => {
+            gameState.isMuted = !gameState.isMuted;
+            document.getElementById('muteBtn').innerHTML = gameState.isMuted ? 
+                '<span>🔇</span> Mute' : '<span>🔊</span> Sound';
+        });
+        
+        document.getElementById('addImageEffectBtn').addEventListener('click', addRandomImageEffect);
+        
+        // Initialize high score display
+        document.getElementById('highScore').textContent = gameState.highScore;
+        
+        // Initialize start screen
+        resetStartScreen();
+    </script>
+</body>
+</html>
